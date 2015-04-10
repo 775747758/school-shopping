@@ -1,5 +1,9 @@
 package com.sxt.action;
 
+import io.rong.ApiHttpClient;
+import io.rong.models.FormatType;
+import io.rong.models.SdkHttpResult;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
+import org.codehaus.jackson.map.util.JSONPObject;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -69,7 +74,7 @@ public class UserController implements ServletContextAware {
 		return map;
 	}
 
-	// µÇÂ¼ ·µ»ØÖµÎª0£º²»³É¹¦£¬·µ»ØÖµÎª1£º³É¹¦
+	// ï¿½ï¿½Â¼ ï¿½ï¿½ï¿½ï¿½ÖµÎª0ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÖµÎª1ï¿½ï¿½ï¿½É¹ï¿½
 	@RequestMapping(value = "/login.do")
 	@ResponseBody
 	public Object login(String uname, String password) {
@@ -84,7 +89,7 @@ public class UserController implements ServletContextAware {
 		return map;
 	}
 
-	// ¼ÓÔØÓÃ»§ÏêÏ¸ĞÅÏ¢
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½Ï¢
 	@RequestMapping(value = "/user_info.do")
 	@ResponseBody
 	public Object user_info(String uname) {
@@ -104,8 +109,8 @@ public class UserController implements ServletContextAware {
 
 	
 	/*
-	 * ¼ÓÔØÓÃ»§ÏêÏ¸ĞÅÏ¢   ÒÔ¼°Ö¸¶¨·¶Î§µÄÉÌÆ·   ÒÔ¼°ÊÇ·ñ¹Ø×¢
-	 * ·µ»ØÖµ 0£ºÉÌÆ·ÊıÁ¿Îª0£¬1£ºÕı³££¬-1£ºÃ»ÓĞ´ËÓÃ»§
+	 * ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½Ï¢   ï¿½Ô¼ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Î§ï¿½ï¿½ï¿½ï¿½Æ·   ï¿½Ô¼ï¿½ï¿½Ç·ï¿½ï¿½×¢
+	 * ï¿½ï¿½ï¿½ï¿½Öµ 0ï¿½ï¿½ï¿½ï¿½Æ·ï¿½ï¿½ï¿½ï¿½Îª0ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½-1ï¿½ï¿½Ã»ï¿½Ğ´ï¿½ï¿½Ã»ï¿½
 	 */
 	@RequestMapping(value = "/get_oneinfo.do")
 	@ResponseBody
@@ -136,7 +141,7 @@ public class UserController implements ServletContextAware {
 		return map;
 	}
 
-	// ÉÏ´«Í¼Æ¬ ·µ»ØÖµÎª0£º²»³É¹¦£¬·µ»ØÖµÎª1£º³É¹¦
+	// ï¿½Ï´ï¿½Í¼Æ¬ ï¿½ï¿½ï¿½ï¿½ÖµÎª0ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÖµÎª1ï¿½ï¿½ï¿½É¹ï¿½
 	@RequestMapping(value = "/upload_portrait.do", method = RequestMethod.POST)
 	@ResponseBody
 	public Object upload_portrait(
@@ -145,14 +150,14 @@ public class UserController implements ServletContextAware {
 
 		if (!file.isEmpty()) {
 			String path = this.servletContext
-					.getRealPath("/picture/user_portrait"); // »ñÈ¡±¾µØ´æ´¢Â·¾¶
+					.getRealPath("/picture/user_portrait"); // ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ø´æ´¢Â·ï¿½ï¿½
 			System.out.println(path);
 			String fileName = file.getOriginalFilename();
 			String fileType = fileName.substring(fileName.lastIndexOf("."));
 			System.out.println(fileType);
-			File file2 = new File(path, fileName); // ĞÂ½¨Ò»¸öÎÄ¼ş
+			File file2 = new File(path, fileName); // ï¿½Â½ï¿½Ò»ï¿½ï¿½ï¿½Ä¼ï¿½
 			try {
-				file.getFileItem().write(file2); // ½«ÉÏ´«µÄÎÄ¼şĞ´ÈëĞÂ½¨µÄÎÄ¼şÖĞ
+				file.getFileItem().write(file2); // ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Ğ´ï¿½ï¿½ï¿½Â½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -171,7 +176,7 @@ public class UserController implements ServletContextAware {
 	 * System.out.println(filename); File file=new
 	 * File("D:\\picture\\user_portrait\\"+filename); HttpHeaders headers = new
 	 * HttpHeaders(); String fileName=new
-	 * String(filename.getBytes("UTF-8"),"iso-8859-1");//ÎªÁË½â¾öÖĞÎÄÃû³ÆÂÒÂëÎÊÌâ
+	 * String(filename.getBytes("UTF-8"),"iso-8859-1");//Îªï¿½Ë½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 * System.out.println(fileName);
 	 * headers.setContentDispositionFormData("attachment", fileName);
 	 * headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); //
@@ -187,7 +192,7 @@ public class UserController implements ServletContextAware {
 		System.out.println(filename);
 		File file = new File("D:\\picture\\user_portrait\\" + filename);
 		HttpHeaders headers = new HttpHeaders();
-		String fileName = new String(filename.getBytes("UTF-8"), "iso-8859-1");// ÎªÁË½â¾öÖĞÎÄÃû³ÆÂÒÂëÎÊÌâ
+		String fileName = new String(filename.getBytes("UTF-8"), "iso-8859-1");// Îªï¿½Ë½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		InputStream in = new FileInputStream(file);
 
 		OutputStream os = response.getOutputStream();
@@ -210,10 +215,27 @@ public class UserController implements ServletContextAware {
 		this.userService = userService;
 	}
 
-	// ÊµÏÖÉÏ´«µÄÎÄ¼ş´æ´¢ÔÚ±¾µØ±ØĞëÊµÏÖ
+	// Êµï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½æ´¢ï¿½Ú±ï¿½ï¿½Ø±ï¿½ï¿½ï¿½Êµï¿½ï¿½
 	@Override
 	public void setServletContext(ServletContext arg0) {
 		this.servletContext = arg0;
 	}
+	
+	
+	/*public String getRYToken(int id){
+		String key = "bmdehs6pdcios";
+		String secret = "3SYXDBEukp";
+		SdkHttpResult result = null;
+		try {
+			result = ApiHttpClient.getToken(key, secret, "1", "æ–‡æ°",
+					"http://img.taopic.com/uploads/allimg/110812/1820-110Q20K24526.jpg", FormatType.json);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+	}*/
 
 }

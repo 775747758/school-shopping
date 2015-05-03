@@ -1,42 +1,31 @@
 package com.sxt.action;
 
-import io.rong.ApiHttpClient;
-import io.rong.models.FormatType;
-import io.rong.models.SdkHttpResult;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.FileUtils;
-import org.codehaus.jackson.map.util.JSONPObject;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.ServletContextAware;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import com.school.shopping.rongyun.Token;
+import com.school.shopping.util.Constant;
+import com.school.shopping.util.FileHelper;
 import com.sxt.po.Good;
 import com.sxt.po.User;
 import com.sxt.service.FriendService;
@@ -58,38 +47,67 @@ public class UserController implements ServletContextAware {
 	@Resource
 	public FriendService friendService;
 
-	@RequestMapping(value = "/regster.do")
-	@ResponseBody
-	public Object reg(User user) {
-		System.out.println("UserController.reg()");
+	private static final Logger logger = Logger.getLogger("stdout");
 
+
+	//code=1:成功；code=0：用户名或密码错误;
+	@RequestMapping(value = "/login.do",method = RequestMethod.POST)
+	@ResponseBody
+	public Object login(String uname, String password,String deviceId) {
 		Map<String, Object> map = new HashMap<String, Object>(1);
-		if (!userService.isHave(user.getUname())) {
-			userService.add(user.getUname(), user.getPassword());
+		User user=userService.login(uname, password,deviceId);
+		if(user==null){
+			map.put("code", "0");
+			logger.info("用户名或密码错误");
+			return map;
+		}
+		String token=Token.getRYToken(uname, user.getRealName());
+		if(token!=null&&!"".equals(token)&&user!=null){
 			map.put("code", "1");
-			map.put("uid", userService.getUID(user.getUname()));
-		} else {
+			map.put("user", user);
+			map.put("token", token);
+			logger.info("登陆成功");
+			return map;
+		}
+		else{
+			logger.info("没有从融云获取到token");
+			map.put("code", "0");
+		}
+		return map;
+	}
+	
+	
+	@RequestMapping(value = "/checkLoginState.do",method = RequestMethod.POST)
+	@ResponseBody
+	public Object checkLoginState(int id,String deviceId) {
+		Map<String, Object> map = new HashMap<String, Object>(1);
+		if(userService.checkLoginState(id, deviceId)){
+			map.put("code", "1");
+			logger.info("验证通过");
+		}
+		else{
+			logger.info("验证失败，已经在其他设备登录");
+			map.put("code", "0");
+		}
+		return map;
+	}
+	
+	@RequestMapping(value = "/gettoken.do")
+	@ResponseBody
+	public Object getToken(int id) {
+		Map<String, Object> map = new HashMap<String, Object>(1);
+		User user=userService.getUserById(id);
+		String tokenString=Token.getRYToken(user.getUname(), user.getRealName());
+		if(tokenString!=null){
+			map.put("token", Token.getRYToken(user.getUname(), user.getRealName()));
+			map.put("code", "1");
+		}
+		else {
 			map.put("code", "0");
 		}
 		return map;
 	}
 
-	// ��¼ ����ֵΪ0�����ɹ�������ֵΪ1���ɹ�
-	@RequestMapping(value = "/login.do")
-	@ResponseBody
-	public Object login(String uname, String password) {
-		System.out.println("usercontroler:" + uname);
-		Map<String, Object> map = new HashMap<String, Object>(1);
-		if (userService.login(uname, password)) {
-			map.put("code", "1");
-			map.put("user", userService.getUserByUname(uname));
-		} else {
-			map.put("code", "0");
-		}
-		return map;
-	}
-
-	// �����û���ϸ��Ϣ
 	@RequestMapping(value = "/user_info.do")
 	@ResponseBody
 	public Object user_info(String uname) {
@@ -108,10 +126,6 @@ public class UserController implements ServletContextAware {
 	}
 
 	
-	/*
-	 * �����û���ϸ��Ϣ   �Լ�ָ����Χ����Ʒ   �Լ��Ƿ��ע
-	 * ����ֵ 0����Ʒ����Ϊ0��1����-1��û�д��û�
-	 */
 	@RequestMapping(value = "/get_oneinfo.do")
 	@ResponseBody
 	public Object getOneInfo(int myId,int id,int startIndex,int lastIndex) {
@@ -141,51 +155,27 @@ public class UserController implements ServletContextAware {
 		return map;
 	}
 
-	// �ϴ�ͼƬ ����ֵΪ0�����ɹ�������ֵΪ1���ɹ�
-	@RequestMapping(value = "/upload_portrait.do", method = RequestMethod.POST)
+	@RequestMapping(value = "/regster.do", method = RequestMethod.POST)
 	@ResponseBody
-	public Object upload_portrait(
-			@RequestParam("file") CommonsMultipartFile file) throws IOException {
+	public Object regster(
+			@RequestParam("file") CommonsMultipartFile file,User user) throws IOException {
+
 		Map<String, Object> map = new HashMap<String, Object>(1);
-
-		if (!file.isEmpty()) {
-			String path = this.servletContext
-					.getRealPath("/picture/user_portrait"); // ��ȡ���ش洢·��
-			System.out.println(path);
-			String fileName = file.getOriginalFilename();
-			String fileType = fileName.substring(fileName.lastIndexOf("."));
-			System.out.println(fileType);
-			File file2 = new File(path, fileName); // �½�һ���ļ�
-			try {
-				file.getFileItem().write(file2); // ���ϴ����ļ�д���½����ļ���
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		String token=userService.register(file, user, Constant.PATH_USER_PORTRAIT);
+		if(token!=null){
+			int uid=userService.getUID(user.getUname());
 			map.put("code", "1");
-
+			map.put("uid", uid);
+			map.put("token", token);
+			logger.info("注册成功  "+"uid: "+uid);
 			return map;
-		} else {
+		}
+		else {
+			logger.info("注册失败  ");
 			map.put("code", "0");
 			return map;
 		}
 	}
-
-	/*
-	 * @RequestMapping("/download_portrait.do") public ResponseEntity<byte[]>
-	 * download(String filename) throws IOException {
-	 * System.out.println(filename); File file=new
-	 * File("D:\\picture\\user_portrait\\"+filename); HttpHeaders headers = new
-	 * HttpHeaders(); String fileName=new
-	 * String(filename.getBytes("UTF-8"),"iso-8859-1");//Ϊ�˽�����������������
-	 * System.out.println(fileName);
-	 * headers.setContentDispositionFormData("attachment", fileName);
-	 * headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); //
-	 * headers.setExpires(System.currentTimeMillis()+3600*1000);
-	 * //headers.setCacheControl("public"); return new
-	 * ResponseEntity<byte[]>(FileUtils
-	 * .readFileToByteArray(file),headers,HttpStatus.CREATED); }
-	 */
-
 	@RequestMapping("/download_portrait.do")
 	public void download(String filename, HttpServletResponse response)
 			throws IOException {
@@ -215,27 +205,9 @@ public class UserController implements ServletContextAware {
 		this.userService = userService;
 	}
 
-	// ʵ���ϴ����ļ��洢�ڱ��ر���ʵ��
 	@Override
 	public void setServletContext(ServletContext arg0) {
 		this.servletContext = arg0;
 	}
-	
-	
-	/*public String getRYToken(int id){
-		String key = "bmdehs6pdcios";
-		String secret = "3SYXDBEukp";
-		SdkHttpResult result = null;
-		try {
-			result = ApiHttpClient.getToken(key, secret, "1", "文杰",
-					"http://img.taopic.com/uploads/allimg/110812/1820-110Q20K24526.jpg", FormatType.json);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		
-	}*/
 
 }

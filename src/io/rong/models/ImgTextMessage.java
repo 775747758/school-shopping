@@ -9,7 +9,6 @@ public class ImgTextMessage extends Message {
 	private String title;
 	private String imageUri;
 	private String extra;
-
 	public ImgTextMessage(String content, String title, String imageUri) {
 		this.type = "RC:ImgTextMsg";
 		this.content = content;
@@ -59,4 +58,5 @@ public class ImgTextMessage extends Message {
 	public String toString() {
 		return GsonUtil.toJson(this, ImgTextMessage.class);
 	}
+	
 }

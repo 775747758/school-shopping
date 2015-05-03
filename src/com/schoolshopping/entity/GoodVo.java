@@ -1,14 +1,8 @@
-package com.sxt.po;
+package com.schoolshopping.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+public class GoodVo {
 
-@Entity
-public class Good {
-	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	
 	private int id;
 	private String goodName;
 	private int type;
@@ -17,13 +11,35 @@ public class Good {
 	private int newLevel;//�¾ɳ̶�
 	private String introduction;//���
 	private int uid;//�û�id
+	private String latitude;
+	private String longitude;
+	private String uname;
 	
 	
-	public int getUid() {
-		return uid;
+	
+	
+	public String getUname() {
+		return uname;
 	}
-	public void setUid(int uid) {
+	public void setUname(String uname) {
+		this.uname = uname;
+	}
+	
+	public GoodVo(int id, String goodName, int type, String price,
+			int isAdjust, int newLevel, String introduction, int uid,
+			String latitude, String longitude, String uname) {
+		super();
+		this.id = id;
+		this.goodName = goodName;
+		this.type = type;
+		this.price = price;
+		this.isAdjust = isAdjust;
+		this.newLevel = newLevel;
+		this.introduction = introduction;
 		this.uid = uid;
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.uname = uname;
 	}
 	public int getId() {
 		return id;
@@ -67,11 +83,23 @@ public class Good {
 	public void setIntroduction(String introduction) {
 		this.introduction = introduction;
 	}
-	@Override
-	public String toString() {
-		return "User [id=" + id + ", goodName=" + goodName + ", type=" + type
-				+ ", price=" + price + ", isAdjust=" + isAdjust + ", newLevel="
-				+ newLevel + ", introduction=" + introduction + "]";
+	public int getUid() {
+		return uid;
+	}
+	public void setUid(int uid) {
+		this.uid = uid;
+	}
+	public String getLatitude() {
+		return latitude;
+	}
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+	public String getLongitude() {
+		return longitude;
+	}
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
 	}
 	
 	

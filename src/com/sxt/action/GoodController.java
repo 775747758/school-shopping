@@ -32,6 +32,7 @@ import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import com.schoolshopping.entity.GoodVo;
 import com.sxt.po.Good;
 import com.sxt.po.User;
 import com.sxt.service.GoodService;
@@ -65,32 +66,86 @@ public class GoodController  implements ServletContextAware{
 		return map;
 	}
 	
+	//codeå¦‚æœä¸º0ï¼šæ˜¯æ•°æ®ä¸ºç©º0ä¸ª
 	@RequestMapping(value = "/get_goods.do")
 	@ResponseBody
 	public Object get_goods(Integer startIndex,Integer lastIndex) {
 		Map<String, Object> map = new HashMap<String, Object>(1);
 		List<Good> goods=goodService.getGood(startIndex, lastIndex);
-		map.put("code", "1");
+		if(goods==null||goods.size()==0){
+			map.put("code", "0");
+		}
+		else{
+			map.put("code", "1");
+		}
 		map.put("goods", goods);
 		return map;
 	}
 	
-	
-	//ÉÏ´«ÉÌÆ·Í¼Æ¬  ·µ»ØÖµÎª0£º²»³É¹¦£¬·µ»ØÖµÎª1£º³É¹¦
+		//codeå¦‚æœä¸º0ï¼šæ˜¯æ•°æ®ä¸ºç©º0ä¸ª
+		@RequestMapping(value = "/get_goods_home.do")
+		@ResponseBody
+		public Object get_goods_home() {
+			Map<String, Object> map = new HashMap<String, Object>(1);
+			String[] typeAry={"è¡£æœ","ä¹¦ç±","æ•°ç ","æ‚è´§é“º"};
+			boolean isError=false;
+			for(int i=0;i<typeAry.length;i++){
+				List<Good> goods=goodService.getTwoGoodByType(typeAry[i]);
+				map.put(typeAry[i], goods);
+				if(goods==null||goods.size()==0){
+					isError=true;
+				}
+			}
+			if(isError){
+				map.put("code", "0"); 
+			}
+			else{
+				map.put("code", "1");
+			}
+			return map;
+		}
+
+		@RequestMapping(value = "/get_goods_by_type.do")
+		@ResponseBody
+		public Object get_goods_by_type(
+				@RequestParam(value = "minNewLevel", defaultValue ="0") int minNewLevel,
+				@RequestParam(value = "maxNewLevel", defaultValue = "10") int maxNewLevel,
+				@RequestParam(value = "type", defaultValue = "-1") int type,
+				@RequestParam(value = "isAdjust", defaultValue = "-1") int isAdjust,
+				@RequestParam(value = "city", defaultValue ="") String city,
+				@RequestParam(value = "keyword", defaultValue ="") String keyword,
+				@RequestParam(value = "startIndex", defaultValue ="0") Integer startIndex,
+				@RequestParam(value = "lastIndex", defaultValue ="20") Integer lastIndex
+				) {
+			System.out.println("keyword11::"+keyword);
+			Map<String, Object> map = new HashMap<String, Object>(1);
+			List<GoodVo> goods=goodService.getGoods(type, city, isAdjust, keyword, minNewLevel, maxNewLevel,startIndex,lastIndex);
+			
+			if(goods==null||goods.size()==0){
+				map.put("code", "0");
+			}
+			else{
+				map.put("code", "1");
+			}
+			map.put("goods", goods);
+			return map;
+		}
+		
+		
 		@RequestMapping(value = "/upload_goodpic.do", method = RequestMethod.POST)
 		@ResponseBody
 		public Object upload_portrait(@RequestParam("file") CommonsMultipartFile file) throws IOException{
 			Map<String, Object> map = new HashMap<String, Object>(1);
 			
 			if (!file.isEmpty()) {
-				   String path = "D:\\picture\\good";  //»ñÈ¡±¾µØ´æ´¢Â·¾¶
+				   String path = "D:\\picture\\good"; 
 				   System.out.println(path);
 				   String fileName = file.getOriginalFilename();
 				   String fileType = fileName.substring(fileName.lastIndexOf("."));
 				   System.out.println(fileType); 
-				   File file2 = new File(path,fileName); //ĞÂ½¨Ò»¸öÎÄ¼ş
+				   File file2 = new File(path,fileName); 
 				   try {
-					    file.getFileItem().write(file2); //½«ÉÏ´«µÄÎÄ¼şĞ´ÈëĞÂ½¨µÄÎÄ¼şÖĞ
+					    file.getFileItem().write(file2); 
 				   } catch (Exception e) {
 					    e.printStackTrace();
 				   }
@@ -108,7 +163,7 @@ public class GoodController  implements ServletContextAware{
 	    	System.out.println(filename);
 	    	File file=new File("D:\\picture\\good\\"+filename);
 	        HttpHeaders headers = new HttpHeaders(); 
-	        String fileName=new String(filename.getBytes("UTF-8"),"iso-8859-1");//ÎªÁË½â¾öÖĞÎÄÃû³ÆÂÒÂëÎÊÌâ  
+	        String fileName=new String(filename.getBytes("UTF-8"),"iso-8859-1");//Îªï¿½Ë½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  
 	        InputStream in = new FileInputStream(file);
 	 
 	        OutputStream os = response.getOutputStream();
@@ -121,25 +176,14 @@ public class GoodController  implements ServletContextAware{
 	        in.close();
 	       // return new ResponseEntity<byte[]>(FileUtils.readFileToByteArray(file),headers,HttpStatus.CREATED);    
 	    }
-		
-	
-	
 	
 	public GoodService getGoodService() {
 		return goodService;
 	}
 
-
-
-
 	public void setGoodService(GoodService goodService) {
 		this.goodService = goodService;
 	}
-
-
-
-
-	//ÊµÏÖÉÏ´«µÄÎÄ¼ş´æ´¢ÔÚ±¾µØ±ØĞëÊµÏÖ
 	@Override
 	public void setServletContext(ServletContext arg0) {
 		this.servletContext=arg0;

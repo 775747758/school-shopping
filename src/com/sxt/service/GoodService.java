@@ -12,9 +12,14 @@ import javax.annotation.Resource;
 
 
 
+
+
+
+
 import org.hibernate.Query;
 import org.springframework.stereotype.Service;
 
+import com.schoolshopping.entity.GoodVo;
 import com.sxt.dao.GoodDao;
 import com.sxt.dao.UserDao;
 import com.sxt.po.Good;
@@ -47,6 +52,14 @@ public class GoodService {
 	
 	public List<Good> getGood(int uid,int startIndex,int lastIndex) {
 		return goodDao.getGoodById(uid, startIndex, lastIndex);
+	}
+	
+	public List<Good> getTwoGoodByType(String type) {
+		return goodDao.getTwoGoodByType(type);
+	}
+	
+	public List<GoodVo> getGoods(int type,String city,int isAdjust,String keyword,int minNewLevel,int maxNewLevel, Integer startIndex, Integer lastIndex) {
+		return goodDao.getGoods(type, city, isAdjust, keyword, minNewLevel, maxNewLevel,startIndex,lastIndex);
 	}
 	
 }

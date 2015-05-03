@@ -22,11 +22,18 @@ public class User {
 	private String qq;
 	private int gender;
 	private String city;
+	private String deviceId;
+	private String longitude;
+	private String latitude;
+
 	
 	
-	
-	
-	
+	public String getDeviceId() {
+		return deviceId;
+	}
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
 	
 	public String getCity() {
 		return city;

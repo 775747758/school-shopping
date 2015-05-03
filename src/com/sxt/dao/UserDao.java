@@ -41,6 +41,7 @@ public class UserDao extends HibernateDaoSupport{
 	}
 	
 	public User getUserByUname(String uname) {
+		
 		Query query = this.getSession().createQuery("from User where uname=?");
 		query.setParameter(0, uname);
 		List<User> users = query.list();
@@ -62,7 +63,7 @@ public class UserDao extends HibernateDaoSupport{
 		return null;
 	}
 	
-	//·µ»ØÖµ£º-1±íÊ¾²»´æÔÚ
+	//ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½-1ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	public int getUID(String uname) {
 		Query query = this.getSession().createQuery("select id from User where uname=?");
 		query.setParameter(0, uname);
@@ -76,31 +77,21 @@ public class UserDao extends HibernateDaoSupport{
 		}
 	}
 
-	public boolean login(String uanme, String password) {
-		System.out.println(uanme);
-		System.out.println(password);
-		Query query = this.getSession().createQuery("select password from User where uname=?");
-		query.setParameter(0, uanme);
-		List<String> users = query.list();
-		System.out.println(users.size()+"");
+	public User getUserByUnameAndPassword(String uname, String password) {
+		Query query = this.getSession().createQuery("from User where uname=? and password=?");
+		query.setParameter(0, uname);
+		query.setParameter(1, password);
+		List<User> users = query.list();
 		if(users.size()>0)
 		{
-			System.out.println("users.size()>0");
-			System.out.println(users.get(0)+"");
-			
-			if(users.get(0).equals(password)){
-				return true;
-			}
-			else {
-				return false;
-			}
+			return users.get(0);
 		}
-		else {
-			return false;
-		}
+		return null;
 	}
 	
-	
+	public void updateUser(User user){
+		this.getSession().update(user);
+	}
 
 	
 }
